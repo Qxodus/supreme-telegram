@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>URL Search</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background-color: #FFA07A; /* Peach/Orange background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    cursor: text; /* Add text cursor to entire body */
+  }
+
+  .search-container {
+    position: relative;
+    width: 300px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 25px; /* Curved corners */
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+
+  .dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 25px 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 1000;
+  }
+
+  .dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  .dropdown-item:hover,
+  .dropdown-item.active {
+    background-color: #f0f0f0;
+  }
+</style>
+</head>
+<body>
+
+<div class="search-container">
+  <input type="text" id="searchInput" placeholder="Search URLs..." autocomplete="off" />
+  <div class="dropdown" id="dropdown"></div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const dropdown = document.getElementById('dropdown');
+
+  // Embed your URL list directly into the HTML
+    const urlData = `
+https://forums.deathlist.net/topic/811-mahmoud-abbas/|Mahmoud Abbas
+https://forums.deathlist.net/topic/9158-diane-abbott/|Diane Abbott
+https://forums.deathlist.net/topic/3483-steven-adler/|Steven Adler
+https://forums.deathlist.net/topic/2252-mahmoud-ahmadinejad/|Mahmoud Ahmadinejad
+https://forums.deathlist.net/topic/8960-5-emperor-akihito/?page=1|Akihito
+https://forums.deathlist.net/topic/8052-president-al-assad-of-syria/|Bashar al-Assad
+https://forums.deathlist.net/topic/9031-omar-al-bashir/|Omar al-Bashir
+https://forums.deathlist.net/topic/10655-king-albert-ii-of-belgium/|Albert II of Belgium
+https://forums.deathlist.net/topic/9551-alan-alda/|Alan Alda
+https://forums.deathlist.net/topic/10244-buzz-aldrin/|Buzz Aldrin
+https://forums.deathlist.net/topic/10258-ilham-aliyev/|Ilham Aliyev
+https://forums.deathlist.net/topic/502-prime-minister-iyad-allawi/|Iyad Allawi
+https://forums.deathlist.net/topic/10308-steve-allen/|Steve Allen
+https://forums.deathlist.net/topic/8673-woody-allen/|Woody Allen
+https://forums.deathlist.net/topic/721-marc-almond/|Marc Almond
+https://forums.deathlist.net/topic/10443-herb-alpert/|Herb Alpert
+https://forums.deathlist.net/topic/5321-peter-andre/|Peter Andre
+https://forums.deathlist.net/topic/11241-mario-andretti/|Mario Andretti
+https://forums.deathlist.net/topic/11200-ursula-andress/|Ursula Andress
+https://forums.deathlist.net/topic/9828-prince-andrew/|Andrew
+https://forums.deathlist.net/topic/680-julie-andrews/|Julie Andrews
+https://forums.deathlist.net/topic/905-adam-ant/|Adam Ant
+https://forums.deathlist.net/topic/10302-christina-applegate/|Christina Applegate
+https://forums.deathlist.net/topic/2265-jeffrey-archer/|Jeffrey Archer
+https://forums.deathlist.net/topic/10418-joe-arpaio/|Joe Arpaio
+https://forums.deathlist.net/topic/212-leslie-ash/|Leslie Ash
+https://forums.deathlist.net/topic/10803-john-ashton/|John Ashton
+https://forums.deathlist.net/topic/56-michael-aspel/|Michael Aspel
+https://forums.deathlist.net/topic/7726-julian-assange/|Julian Assange
+https://forums.deathlist.net/topic/10061-john-astin/|John Astin
+https://forums.deathlist.net/topic/9267-gala-atari/|Gala Atari
+https://forums.deathlist.net/topic/11044-eileen-atkins/|Eileen Atkins
+https://forums.deathlist.net/topic/2353-sir-david-attenborough/|David Attenborough
+https://forums.deathlist.net/topic/8120-aung-san-suu-kyi/|Aung San Suu Kyi
+https://forums.deathlist.net/topic/2506-are-these-people-dead/|Frankie Avalon
+https://forums.deathlist.net/topic/2685-alan-ayckborn-suffers-stroke/|Alan Ayckbourn
+https://forums.deathlist.net/topic/4058-alan-ayckbourn/|Duplicate thread
+https://forums.deathlist.net/topic/8929-dan-aykroyd/|Dan Aykroyd
+https://forums.deathlist.net/topic/9435-amitabh-bachchan/|Amitabh Bachchan
+https://forums.deathlist.net/topic/10647-princess-bajrakitiyabha-of-thailand/|Princess Bajrakitiyabha
+https://forums.deathlist.net/topic/7696-danny-baker/|Danny Baker
+https://forums.deathlist.net/topic/10347-james-baker/|James Baker
+https://forums.deathlist.net/topic/9953-tom-baker/|Tom Baker
+https://forums.deathlist.net/topic/8115-staff-sgt-robert-bales/|Staff sgt Robert Bales
+https://forums.deathlist.net/topic/10445-edouard-balladur/|Edouard Balladur
+https://forums.deathlist.net/topic/1779-banksy/|Banksy
+https://forums.deathlist.net/topic/10849-34-daniel-barenboim/|Daniel Barenboim
+https://forums.deathlist.net/topic/10744-thelma-barlow/|Thelma Barlow
+https://forums.deathlist.net/topic/9986-roseanne-barr/|Roseanne Barr
+https://forums.deathlist.net/topic/1571-michael-barrymore/|Michael Barrymore
+https://forums.deathlist.net/topic/10277-martin-bashir/|Martin Bashir
+https://forums.deathlist.net/topic/9120-shirley-bassey/|Shirley Bassey
+https://forums.deathlist.net/topic/8491-queen-beatrix/|Queen Beatrix
+https://forums.deathlist.net/topic/10906-warren-beatty/|Warren Beatty
+https://forums.deathlist.net/topic/2130-romeo-romeo/|Romeo Beckham
+https://forums.deathlist.net/topic/1887-victoria-beckham/|Victoria Beckham
+https://forums.deathlist.net/topic/9710-shamima-begum-2020-list/|Shamima Begum
+https://forums.deathlist.net/topic/879-andy-bell/|Andy Bell
+https://forums.deathlist.net/topic/10984-donald-p-bellisario/|Donald P. Bellisario
+https://forums.deathlist.net/topic/2111-alan-bennett/|Alan Bennett
+https://forums.deathlist.net/topic/10047-mary-berry/|Mary Berry
+https://forums.deathlist.net/topic/9558-joe-biden/|Joe Biden
+https://forums.deathlist.net/topic/10925-paul-biya/|Paul Biya
+https://forums.deathlist.net/topic/8710-tony-blackburn/|Tony Blackburn
+https://forums.deathlist.net/topic/9602-selma-blair/|Selma Blair
+https://forums.deathlist.net/topic/3479-tony-blair/|Tony Blair
+https://forums.deathlist.net/topic/8508-sepp-blatter/|Sepp Blatter
+https://forums.deathlist.net/topic/10140-brian-blessed/|Brian Blessed
+https://forums.deathlist.net/topic/10848-26-hans-blix/|Hans Blix
+https://forums.deathlist.net/topic/201-buster-bloodvessel/|Buster Bloodvessel
+https://forums.deathlist.net/topic/2215-david-blunkett/|David Blunkett
+https://forums.deathlist.net/topic/11058-dave-blunts/|Dave Blunts
+https://forums.deathlist.net/topic/9851-jair-bolsonaro/|Jair Bolsonaro
+https://forums.deathlist.net/topic/10864-michael-bolton/|Michael Bolton
+https://forums.deathlist.net/topic/10228-hugh-bonneville/|Hugh Bonneville
+https://forums.deathlist.net/topic/7542-bono/|Bono
+https://forums.deathlist.net/topic/9537-pat-boone/|Pat Boone
+https://forums.deathlist.net/topic/11151-bj%C3%B6rn-borg/|Björn Borg
+https://forums.deathlist.net/topic/246-sir-geoffrey-boycott/|Sir Geoffrey Boycott
+https://forums.deathlist.net/topic/7139-susan-boyle/|Susan Boyle
+https://forums.deathlist.net/topic/10327-julia-bradbury/|Julia Bradbury
+https://forums.deathlist.net/topic/10779-russell-brand/|Russell Brand
+https://forums.deathlist.net/topic/9744-alan-brazil/|Alan Brazil
+https://forums.deathlist.net/topic/10059-jeff-bridges/|Jeff Bridges
+https://forums.deathlist.net/topic/9147-tom-brokaw/|Tom Brokaw
+https://forums.deathlist.net/topic/9527-arthur-brown/|Arthur Brown
+https://forums.deathlist.net/topic/5872-faith-brown/|Faith Brown
+https://forums.deathlist.net/topic/5513-prime-minister-gordon-brown/|Gordon Brown
+https://forums.deathlist.net/topic/3486-gordon-brown/|Duplicate thread
+https://forums.deathlist.net/topic/11284-joe-brown-mbe/|Joe Brown
+https://forums.deathlist.net/topic/8749-36-mel-brooks/?page=1|Mel Brooks
+https://forums.deathlist.net/topic/9534-melvyn-bragg/|Melvyn Bragg
+https://forums.deathlist.net/topic/10872-pat-buchanan/|Pat Buchanan
+https://forums.deathlist.net/topic/566-warren-buffett/|Warren Buffett
+https://forums.deathlist.net/topic/10850-50-joe-bugner/|Joe Bugner
+https://forums.deathlist.net/topic/9184-eric-burdon/|Eric Burdon
+https://forums.deathlist.net/topic/11154-carol-burnett/|Carol Burnett
+https://forums.deathlist.net/topic/11042-ellen-burstyn/|Ellen Burstyn
+https://forums.deathlist.net/topic/10321-george-w-bush/|George W. Bush
+https://forums.deathlist.net/topic/11135-biff-byford/|Biff Byford
+https://forums.deathlist.net/topic/9431-sir-michael-caine/|Sir Michael Caine
+https://forums.deathlist.net/topic/8119-james-cameron/|James Cameron
+https://forums.deathlist.net/topic/211-the-duchess-of-cornwall/|Queen Camilla
+https://forums.deathlist.net/topic/7941-david-cameron/|David Cameron
+https://forums.deathlist.net/topic/11289-bruce-campbell/|Bruce Campbell
+https://forums.deathlist.net/topic/1136-jose-canseco/|Jose Canseco
+https://forums.deathlist.net/topic/1535-graham-capill/?page=1|Graham Capill
+https://forums.deathlist.net/topic/9728-richard-carpenter/|Richard Carpenter
+https://forums.deathlist.net/topic/10938-jimmy-carr/|Jimmy Carr
+https://forums.deathlist.net/topic/8972-jim-carrey/|Jim Carrey
+https://forums.deathlist.net/topic/8995-41-raul-castro/?page=1|Raul Castro
+https://forums.deathlist.net/topic/10900-catherine-windsor-aka-kate-middleton/?page=1|Catherine
+https://forums.deathlist.net/topic/9926-prince-charles/|King Charles
+https://forums.deathlist.net/topic/10248-chevy-chase/|Chevy Chase
+https://forums.deathlist.net/topic/6668-cher/|Cher
+https://forums.deathlist.net/topic/10777-bernadette-chirac/|Bernadette Chirac
+https://forums.deathlist.net/topic/9944-noam-chomsky/|Noam Chomsky
+https://forums.deathlist.net/topic/8520-tommy-chong/|Tommy Chong
+https://forums.deathlist.net/topic/11029-jean-chretien/|Jean Chretien
+https://forums.deathlist.net/topic/11086-chubby-checker/|Chubby Checker
+https://forums.deathlist.net/topic/2916-charles-clark/|Charles Clark
+https://forums.deathlist.net/topic/11163-roy-clarke/|Roy Clarke
+https://forums.deathlist.net/topic/2663-sheryl-crow/|Sheryl Crow
+https://forums.deathlist.net/topic/537-heres-a-contender/|Steve Cunningham
+https://forums.deathlist.net/topic/9107-eric-clapton/|Eric Clapton
+https://forums.deathlist.net/topic/9449-petula-clark/|Petula Clark
+https://forums.deathlist.net/topic/10734-jeremy-clarkson/|Jeremy Clarkson
+https://forums.deathlist.net/topic/1838-john-cleese/|John Cleese
+https://forums.deathlist.net/topic/1182-bill-clinton/|Bill Clinton
+https://forums.deathlist.net/topic/9549-george-clinton/|George Clinton
+https://forums.deathlist.net/topic/8212-hillary-clinton/|Hillary Clinton
+https://forums.deathlist.net/topic/2202-george-clooney/|George Clooney
+https://forums.deathlist.net/topic/1793-marc-cohn/|Marc Cohn
+https://forums.deathlist.net/topic/9119-joan-collins-ultra-glamorous-british-actress-and-hollywood-star/|Joan Collins
+https://forums.deathlist.net/topic/8288-billy-connolly/|Billy Connolly
+https://forums.deathlist.net/topic/10538-sidney-cooke/|Sidney Cooke
+https://forums.deathlist.net/topic/11283-ray-cooney/|Ray Cooney
+https://forums.deathlist.net/topic/10905-francis-ford-coppola/|Francis Ford Coppola
+https://forums.deathlist.net/topic/1455-schapelle-corby/|Schapelle Corby
+https://forums.deathlist.net/topic/8555-jeremy-corbyn/|Jeremy Corbyn
+https://forums.deathlist.net/topic/8424-bill-cosby/|Bill Cosby
+https://forums.deathlist.net/topic/9539-elvis-costello/|Elvis Costello
+https://forums.deathlist.net/topic/11179-sir-tom-courtenay/|Tom Courtenay
+https://forums.deathlist.net/topic/10017-simon-cowell/|Simon Cowell
+https://forums.deathlist.net/topic/9547-brian-cox/|Brian Cox
+https://forums.deathlist.net/topic/9510-jenny-craig/|Jenny Craig
+https://forums.deathlist.net/topic/2646-michael-crawford/|Michael Crawford
+https://forums.deathlist.net/topic/8108-macaulay-culkin/|Macaulay Culkin
+https://forums.deathlist.net/topic/9783-tim-curry/|Tim Curry
+https://forums.deathlist.net/topic/11051-billy-ray-cyrus/|Billy Ray Cyrus
+https://forums.deathlist.net/topic/9940-kenny-dalglish/|Kenny Dalglish
+https://forums.deathlist.net/topic/163-john-daly/|John Daly
+https://forums.deathlist.net/topic/10314-william-daniels/|William Daniels
+https://forums.deathlist.net/topic/9162-daniel-day-lewis/|Daniel Day-Lewis
+https://forums.deathlist.net/topic/586-dave-davies/|Dave Davies
+https://forums.deathlist.net/topic/10238-jim-davis/|Jim Davis
+https://forums.deathlist.net/topic/853-bad-news/|Aubrey De Grey
+https://forums.deathlist.net/topic/7209-jaap-de-hoop-scheffer/|Jaap de Hoop Scheffer
+https://forums.deathlist.net/topic/9320-maria-antonieta-de-las-nieves/|Maria Antonieta de las Nieves
+https://forums.deathlist.net/topic/21-robert-de-niro/|Robert De Niro
+https://forums.deathlist.net/topic/9626-john-deacon/|John Deacon
+https://forums.deathlist.net/topic/10446-len-deighton/|Len Deighton
+https://forums.deathlist.net/topic/9589-dame-judi-dench/|Dame Judi Dench
+https://forums.deathlist.net/topic/180-les-dennis/|Les Dennis
+https://forums.deathlist.net/topic/8416-gerard-depardieu/|Gerard Depardieu
+https://forums.deathlist.net/topic/11240-24-eileen-derbyshire/|Eileen Derbyshire
+https://forums.deathlist.net/topic/11045-bruce-dern/|Bruce Dern
+https://forums.deathlist.net/topic/9341-neil-diamond/|Neil Diamond
+https://forums.deathlist.net/topic/9118-angie-dickinson-former-hollywood-sex-symbol/|Angie Dickinson
+https://forums.deathlist.net/topic/10966-p-diddy/|P Diddy
+https://forums.deathlist.net/topic/9517-david-dimbleby/|David Dimbleby
+https://forums.deathlist.net/topic/8113-celine-dion/|Celine Dion
+https://forums.deathlist.net/topic/293-pete-doherty/|Pete Doherty
+https://forums.deathlist.net/topic/9778-placido-domingo/|Placido Domingo
+https://forums.deathlist.net/topic/9848-paul-dooley/|Paul Dooley
+https://forums.deathlist.net/topic/7616-michael-douglas/|Michael Douglas
+https://forums.deathlist.net/topic/10185-dr-dre/|Dr. Dre
+https://forums.deathlist.net/topic/10750-keir-dullea/|Keir Dullea
+https://forums.deathlist.net/topic/10161-michael-dukakis/|Michael Dukakis
+https://forums.deathlist.net/topic/10194-faye-dunaway/|Faye Dunaway
+https://forums.deathlist.net/topic/9008-rodrigo-duterte/|Rodrigo Duterte
+https://forums.deathlist.net/topic/10482-jacques-dutronc/|Jacques Dutronc
+https://forums.deathlist.net/topic/695-bob-dylan/|Bob Dylan
+https://forums.deathlist.net/topic/10423-george-dzundza/|George Dzundza
+https://forums.deathlist.net/topic/5563-clint-eastwood/|Clint Eastwood
+https://forums.deathlist.net/topic/10489-bernie-ecclestone/|Bernie Ecclestone
+https://forums.deathlist.net/topic/11126-dave-edmunds-and-er-shakin%E2%80%99-stevens/|Dave Edmunds
+https://forums.deathlist.net/topic/10124-the-grand-old-duke-of-kent/|Edward, Duke of Kent
+https://forums.deathlist.net/topic/10736-huw-edwards/|Huw Edwards
+https://forums.deathlist.net/topic/9577-richey-edwards/|Richey Edwards
+https://forums.deathlist.net/topic/10063-tracey-emin/|Tracey Emin
+https://forums.deathlist.net/topic/10325-recep-tayyip-erdogan/|Recep Tayyip Erdogan
+https://forums.deathlist.net/topic/1296-prince-ernst-august-of-hanover/|Ernst August of Hanover
+https://forums.deathlist.net/topic/1093-joseph-estrada/|Joseph Estrada
+https://forums.deathlist.net/topic/725-melissa-etheridge/|Melissa Etheridge
+https://forums.deathlist.net/topic/8470-ched-evans/|Ched Evans
+https://forums.deathlist.net/topic/9213-donald-fagen/|Donald Fagen
+https://forums.deathlist.net/topic/11133-fairuz/|Fairuz
+https://forums.deathlist.net/topic/10757-georgie-fame/|Georgie Fame
+https://forums.deathlist.net/topic/9032-nigel-farage/|Nigel Farage
+https://forums.deathlist.net/topic/10509-john-farnham/|John Farnham
+https://forums.deathlist.net/topic/3572-louis-farrakhan/|Louis Farrakhan
+https://forums.deathlist.net/topic/9506-mia-farrow/|Mia Farrow
+https://forums.deathlist.net/topic/696-alex-ferguson/|Alex Ferguson
+https://forums.deathlist.net/topic/10875-sarah-ferguson/|Sarah Ferguson
+https://forums.deathlist.net/topic/7889-bryan-ferry-and-roxy-music/|Bryan Ferry
+https://forums.deathlist.net/topic/1229-sir-ranulph-fiennes/|Sir Ranulph Fiennes
+https://forums.deathlist.net/topic/6290-judy-finnegan/|Judy Finnegan
+https://forums.deathlist.net/topic/9262-ric-flair/|Ric Flair
+https://forums.deathlist.net/topic/3976-lord-of-the-dancing-on-his-grave/|Michael Flatley
+https://forums.deathlist.net/topic/9334-jane-fonda-controversial-princess-of-a-hollywood-dynasty/|Jane Fonda
+https://forums.deathlist.net/topic/9957-harrison-ford/|Harrison Ford
+https://forums.deathlist.net/topic/8713-michael-j-fox/|Michael J Fox
+https://forums.deathlist.net/topic/10699-jamie-foxx%EF%BB%BF/|Jamie Foxx﻿
+https://forums.deathlist.net/topic/9711-peter-frampton/|Peter Frampton
+https://forums.deathlist.net/topic/11197-david-frankham/|David Frankham
+https://forums.deathlist.net/topic/8923-morgan-freeman/|Morgan Freeman
+https://forums.deathlist.net/topic/5884-dawn-french/|Dawn French
+https://forums.deathlist.net/topic/11092-robert-fripp/|Robert Fripp
+https://forums.deathlist.net/topic/6474-josef-fritzl/|Josef Fritzl
+https://forums.deathlist.net/topic/9417-stephen-fry/|Stephen Fry
+https://forums.deathlist.net/topic/9450-sonia-gandhi/|Sonia Gandhi
+https://forums.deathlist.net/topic/6517-paul-gascoigne/|Paul Gascoigne
+https://forums.deathlist.net/topic/10165-kyle-gass/|Kyle Gass
+https://forums.deathlist.net/topic/10278-bill-gates/|Bill Gates
+https://forums.deathlist.net/topic/9524-bobbie-gentry/|Bobbie Gentry
+https://forums.deathlist.net/topic/2154-boy-george/|Boy George
+https://forums.deathlist.net/topic/11104-marla-gibbs/|Marla Gibbs
+https://forums.deathlist.net/topic/10504-rhod-gilbert/|Rhod Gilbert
+https://forums.deathlist.net/topic/10291-rudy-giuliani/|Rudy Giuliani
+https://forums.deathlist.net/topic/2249-gary-glitter/|Gary Glitter
+https://forums.deathlist.net/topic/10891-trisha-goddard/|Trisha Goddard
+https://forums.deathlist.net/topic/9718-whoopi-goldberg/|Whoopi Goldberg
+https://forums.deathlist.net/topic/11066-john-goodman/|John Goodman
+https://forums.deathlist.net/topic/9663-julie-goodyear-coronation-street-legend/|Julie Goodyear
+https://forums.deathlist.net/topic/1586-al-gore/|Al Gore
+https://forums.deathlist.net/topic/2076-victoria-gotti/|Victoria Gotti
+https://forums.deathlist.net/topic/10999-elliott-gould/|Elliott Gould
+https://forums.deathlist.net/topic/7409-kelsey-grammer/|Kelsey Grammer
+https://forums.deathlist.net/topic/9651-the-curse-of-ariana-grande/|Ariana Grande
+https://forums.deathlist.net/topic/11184-lee-grant/|Lee Grant
+https://forums.deathlist.net/topic/10592-russell-grant/|Russell Grant
+https://forums.deathlist.net/topic/10871-chuck-grassley/|Chuck Grassley
+https://forums.deathlist.net/topic/9666-12-alan-greenspan/?page=1|Alan Greenspan
+https://forums.deathlist.net/topic/11057-joel-grey/|Joel Grey
+https://forums.deathlist.net/topic/10301-kathy-griffin/|Kathy Griffin
+https://forums.deathlist.net/topic/7548-stephen-griffiths/|Stephen Griffiths
+https://forums.deathlist.net/topic/230-dalai-lama/|Tenzin Gyatso, the 14th Dalai Lama
+https://forums.deathlist.net/topic/3549-cricket-umpire-darryl-hair/|Darrell Hair
+https://forums.deathlist.net/topic/1041-stuart-hall/|Stuart Hall
+https://forums.deathlist.net/topic/10929-halsey/|Halsey
+https://forums.deathlist.net/topic/2972-naseem-hamed/|Naseem Hamed
+https://forums.deathlist.net/topic/852-scott-hamilton/|Scott Hamilton
+https://forums.deathlist.net/topic/3545-richard-hammond/|Richard Hammond
+https://forums.deathlist.net/topic/755-abu-hamza/?page=1|Abu Hamza
+https://forums.deathlist.net/topic/10155-dame-sheila-hancock/|Dame Sheila Hancock
+https://forums.deathlist.net/topic/11015-ted-hankey/|Ted Hankey
+https://forums.deathlist.net/topic/8295-tom-hanks/|Tom Hanks
+https://forums.deathlist.net/topic/189-king-harald-v-of-norway/|Harald V
+https://forums.deathlist.net/topic/10092-rosemary-harris/|Rosemary Harris
+https://forums.deathlist.net/topic/7199-john-hartson-diagnosed-with-brain-cancer/|John Hartson
+https://forums.deathlist.net/topic/10555-roy-hattersley/|Roy Hattersley
+https://forums.deathlist.net/topic/1476-brian-harvey-e17-to-6-feet-under/|Brian Harvey
+https://forums.deathlist.net/topic/10943-kamala-harris/|Kamala Harris
+https://forums.deathlist.net/topic/616-so-what-did-you-expect/|Nur Malena Hassan
+https://forums.deathlist.net/topic/7357-the-hoff-is-off/|David Hasselhoff
+https://forums.deathlist.net/topic/8919-tim-healy/|Tim Healy
+https://forums.deathlist.net/topic/5258-michelle-heaton/|Michelle Heaton
+https://forums.deathlist.net/topic/10894-tippi-hedren/|Tippi Hedren
+https://forums.deathlist.net/topic/9782-werner-herzog/|Werner Herzog
+https://forums.deathlist.net/topic/4267-michael-heseltine/|Michael Heseltine
+https://forums.deathlist.net/topic/9135-james-hewitt/|James Hewitt
+https://forums.deathlist.net/topic/6209-frazer-hines/|Frazer Hines
+https://forums.deathlist.net/topic/9608-glenn-hoddle/|Glenn Hoddle
+https://forums.deathlist.net/topic/9191-dustin-hoffman/|Dustin Hoffman
+https://forums.deathlist.net/topic/11073-david-hockney/|David Hockney
+https://forums.deathlist.net/topic/3453-john-hogan/|John Hogan
+https://forums.deathlist.net/topic/10559-paul-hogan/|Paul Hogan
+https://forums.deathlist.net/topic/10794-noddy-holder/|Noddy Holder
+https://forums.deathlist.net/topic/1515-canadian-schoolgirl-killer-karla-homolka/|Karla Homolka
+https://forums.deathlist.net/topic/10495-james-hong/|James Hong
+https://forums.deathlist.net/topic/2483-sir-anthony-hopkins/|Sir Anthony Hopkins
+https://forums.deathlist.net/topic/9579-katie-hopkins/|Katie Hopkins
+https://forums.deathlist.net/topic/10286-mark-hoppus/|Mark Hoppus
+https://forums.deathlist.net/topic/10967-chris-hoy/|Chris Hoy
+https://forums.deathlist.net/topic/10342-engelbert-humperdinck/|Engelbert Humperdinck
+https://forums.deathlist.net/topic/10389-43-douglas-hurd/|Douglas Hurd
+https://forums.deathlist.net/topic/3870-mirza-tahir-hussain/|Mirza Tahir Hussain
+https://forums.deathlist.net/topic/9246-richard-ingrams/|Richard Ingrams
+https://forums.deathlist.net/topic/2647-david-irving/|David Irving
+https://forums.deathlist.net/topic/11050-james-ivory/|James Ivory
+https://forums.deathlist.net/topic/850-carlos-the-jackal/|Carlos the Jackal
+https://forums.deathlist.net/topic/10566-randy-jackson/|Randy Jackson
+https://forums.deathlist.net/topic/10947-victoria-jackson/|Victoria Jackson
+https://forums.deathlist.net/topic/11178-sir-derek-jacobi/|Derek Jacobi
+https://forums.deathlist.net/topic/10439-david-jason/|David Jason
+https://forums.deathlist.net/topic/9336-david-kid-jensen/|David Jensen
+https://forums.deathlist.net/topic/8227-ron-jeremy/|Ron Jeremy
+https://forums.deathlist.net/topic/10544-hu-jintao/|Hu Jintao
+https://forums.deathlist.net/topic/11122-alejandro-jodorowsky/|Alejandro Jodorowsky
+https://forums.deathlist.net/topic/1293-elton-john/|Elton John
+https://forums.deathlist.net/topic/723-boris-johnson/|Boris Johnson
+https://forums.deathlist.net/topic/10250-holly-johnson/|Holly Johnson
+https://forums.deathlist.net/topic/5262-alan-johnston/?page=1|Alan Johnston
+https://forums.deathlist.net/topic/1212-billy-joel/|Billy Joel
+https://forums.deathlist.net/topic/8492-angelina-jolie/|Angelina Jolie
+https://forums.deathlist.net/topic/10505-alex-jones/|Alex Jones
+https://forums.deathlist.net/topic/1173-tom-dfs-leatherette-sofa-jones/|Tom Jones
+https://forums.deathlist.net/topic/8080-kim-jong-un/|Kim Jong-un
+https://forums.deathlist.net/topic/8389-juan-carlos-i-of-spain/|Juan Carlos I of Spain
+https://forums.deathlist.net/topic/2568-carsten-juste/|Carsten Juste
+https://forums.deathlist.net/topic/10678-ramzan-kadyrov/|Ramzan Kadyrov
+https://forums.deathlist.net/topic/955-hamed-karzai/|Hamed Karzai
+https://forums.deathlist.net/topic/9436-peter-kay/|Peter Kay
+https://forums.deathlist.net/topic/11255-kevin-keegan/|Kevin Keegan
+https://forums.deathlist.net/topic/92-harvey-keitel/|Harvey Keitel
+https://forums.deathlist.net/topic/9809-r-kelly/|R. Kelly
+https://forums.deathlist.net/topic/11205-imran-khan/|Imran Khan
+https://forums.deathlist.net/topic/11291-mojtaba-khamenei/|Mojtaba Khamenei
+https://forums.deathlist.net/topic/217-brian-kidd/|Brian Kidd
+https://forums.deathlist.net/topic/8920-anthony-kiedis/|Anthony Kiedis
+https://forums.deathlist.net/topic/9176-don-king/|Don King
+https://forums.deathlist.net/topic/1242-jonathan-king/|Jonathan King
+https://forums.deathlist.net/topic/10458-stephen-king/|Stephen King
+https://forums.deathlist.net/topic/11167-neil-kinnock/|Neil Kinnock
+https://forums.deathlist.net/topic/61-long-shot-robert-kilroy-silk/?page=1|Robert Kilroy-Silk
+https://forums.deathlist.net/topic/8541-maggie-kirkpatrick/|Maggie Kirkpatrick
+https://forums.deathlist.net/topic/9569-gladys-knight/|Gladys Knight
+https://forums.deathlist.net/topic/9511-koch-brothers/|Charles Koch
+https://forums.deathlist.net/topic/8114-joseph-kony/|Joseph Kony
+https://forums.deathlist.net/topic/3074-janette-krankie/|Janette Krankie
+https://forums.deathlist.net/topic/8226-jeremy-kyle/|Jeremy Kyle
+https://forums.deathlist.net/topic/11172-vytautas-landsbergis/|Vytautas Landsbergis
+https://forums.deathlist.net/topic/9275-artie-lange/|Artie Lange
+https://forums.deathlist.net/topic/3490-chris-langham/|Chris Langham
+https://forums.deathlist.net/topic/10545-larry-the-cat/|Larry
+https://forums.deathlist.net/topic/6581-george-lazenby/|George Lazenby
+https://forums.deathlist.net/topic/10771-lucy-letby/|Lucy Letby
+https://forums.deathlist.net/topic/9110-david-letterman/|David Letterman
+https://forums.deathlist.net/topic/1405-simon-le-bon/|Simon Le Bon
+https://forums.deathlist.net/topic/9461-iain-lee/|Iain Lee
+https://forums.deathlist.net/topic/191-nick-leeson/|Nick Leeson
+https://forums.deathlist.net/topic/11079-pope-leo-xiv/?page=1|Leo XIV
+https://forums.deathlist.net/topic/9266-john-leslie/|John Leslie
+https://forums.deathlist.net/topic/10626-hal-linden/|Hal Linden
+https://forums.deathlist.net/topic/11056-ken-livingstone/|Ken Livingstone
+https://forums.deathlist.net/topic/10972-christopher-lloyd/|Christopher Lloyd
+https://forums.deathlist.net/topic/836-shelly-long/|Shelley Long
+https://forums.deathlist.net/topic/271-greg-louganis/|Greg Louganis
+https://forums.deathlist.net/topic/8711-sophia-loren/|Sophia Loren
+https://forums.deathlist.net/topic/10225-demi-lovato/|Demi Lovato
+https://forums.deathlist.net/topic/539-courtney-love/|Courtney Love
+https://forums.deathlist.net/topic/2492-lord-lucan-the-big-question/|Lord Lucan
+https://forums.deathlist.net/topic/10705-alexander-lukashenko/|Alexander Lukashenko
+https://forums.deathlist.net/topic/10996-lula-da-silva/|Lula da Silva
+https://forums.deathlist.net/topic/11089-joanna-lumley/|Joanna Lumley
+https://forums.deathlist.net/topic/10703-dolph-lundgren/|Dolph Lundgren
+https://forums.deathlist.net/topic/1861-natasha-lyonne/|Natasha Lyonne
+https://forums.deathlist.net/topic/10825-shirley-maclaine/|Shirley MacLaine
+https://forums.deathlist.net/topic/10219-archie-mcpherson/|Archie Macpherson
+https://forums.deathlist.net/topic/1830-madonna/|Madonna
+https://forums.deathlist.net/topic/9742-ron-mael/|Ron Mael
+https://forums.deathlist.net/topic/9535-eddie-mair/|Eddie Mair
+https://forums.deathlist.net/topic/8253-john-major/|John Major
+https://forums.deathlist.net/topic/1117-james-major/|James Major
+https://forums.deathlist.net/topic/9582-post-malone/|Post Malone
+https://forums.deathlist.net/topic/11272-peter-mandelson/|Peter Mandelson
+https://forums.deathlist.net/topic/90-barry-manilow/|Barry Manilow
+https://forums.deathlist.net/topic/9230-marilyn-manson/|Marilyn Manson
+https://forums.deathlist.net/topic/9313-31-imelda-marcos/|Imelda Marcos
+https://forums.deathlist.net/topic/10944-miriam-margolyes/|Miriam Margolyes
+https://forums.deathlist.net/topic/10006-meghan-markle/|Meghan Markle
+https://forums.deathlist.net/topic/9486-andrew-marr/|Andrew Marr
+https://forums.deathlist.net/topic/806-paul-marsden-mp/|Paul Marsden
+https://forums.deathlist.net/topic/8643-george-r-r-martin/|George RR Martin
+https://forums.deathlist.net/topic/11078-sergio-mattarella/|Sergio Mattarella
+https://forums.deathlist.net/topic/9827-dominic-matteo/|Dominic Matteo
+https://forums.deathlist.net/topic/10150-ghislaine-maxwell/|Ghislaine Maxwell
+https://forums.deathlist.net/topic/9971-brian-may/|Brian May
+https://forums.deathlist.net/topic/9159-theresa-may/|Theresa May
+https://forums.deathlist.net/topic/1168-please-let-it-be-paul-mccartney/|Paul McCartney
+https://forums.deathlist.net/topic/10772-mitch-mcconnell/|Mitch McConnell
+https://forums.deathlist.net/topic/1884-devoted-hopelessly/|Patrick Kim McDermott
+https://forums.deathlist.net/topic/11117-ian-mcdiarmid/|Ian McDiarmid
+https://forums.deathlist.net/topic/11146-sir-ian-mckellen/|Ian McKellen
+https://forums.deathlist.net/topic/10511-vince-mcmahon/|Vince McMahon
+https://forums.deathlist.net/topic/9442-ant-mcpartlin/|Ant McPartlin
+https://forums.deathlist.net/topic/9288-john-cougar-mellencamp/|John Cougar Mellencamp
+https://forums.deathlist.net/topic/10968-mette-marit-crown-princess-of-norway/|Mette-Marit
+https://forums.deathlist.net/topic/11148-prince-michael-of-kent/|Michael
+https://forums.deathlist.net/topic/11290-princess-michael-of-kent/|Michael
+https://forums.deathlist.net/topic/9526-abby-lee-miller/|Abby Lee Miller
+https://forums.deathlist.net/topic/4068-heather-mills/|Heather Mills
+https://forums.deathlist.net/topic/8137-liza-minnelli/|Liza Minnelli
+https://forums.deathlist.net/topic/1420-kylie-die-ly-minogue-morgue-go/|Kylie Minogue
+https://forums.deathlist.net/topic/11265-dame-helen-mirren/|Helen Mirren
+https://forums.deathlist.net/topic/10975-andrea-mitchell/|Andrea Mitchell
+https://forums.deathlist.net/topic/8525-joni-mitchell/|Joni Mitchell
+https://forums.deathlist.net/topic/7921-ratko-mladic/|Ratko Mladic
+https://forums.deathlist.net/topic/9992-mahathir-mohamad/|Mahathir Mohamad
+https://forums.deathlist.net/topic/11155-mohammed-vi-of-morocco/|Mohammed VI
+https://forums.deathlist.net/topic/11164-lewis-moody/|Lewis Moody
+https://forums.deathlist.net/topic/8704-michael-moore/|Michael Moore
+https://forums.deathlist.net/topic/7097-evo-morales/|Evo Morales
+https://forums.deathlist.net/topic/11083-rita-moreno/|Rita Moreno
+https://forums.deathlist.net/topic/8391-tracy-morgan/|Tracy Morgan
+https://forums.deathlist.net/topic/10424-michael-moriarty/|Michael Moriarty
+https://forums.deathlist.net/topic/10098-desmond-morris/|Desmond Morris
+https://forums.deathlist.net/topic/5554-mark-morrison/|Mark Morrison
+https://forums.deathlist.net/topic/8241-morrissey/|Morrissey
+https://forums.deathlist.net/topic/10997-randy-moss/|Randy Moss
+https://forums.deathlist.net/topic/1620-early-warning/|Patrick Mower
+https://forums.deathlist.net/topic/1789-jose-mourinho/|Jose Mourinho
+https://forums.deathlist.net/topic/10046-nana-mouskouri/|Nana Mouskouri
+https://forums.deathlist.net/topic/620-chris-moyles-on-radio-1-yesterday/|Chris Moyles
+https://forums.deathlist.net/topic/10428-frankie-muniz/|Frankie Muniz
+https://forums.deathlist.net/topic/671-rupert-murdoch/|Rupert Murdoch
+https://forums.deathlist.net/topic/11106-dermot-murnaghan/|Dermot Murnaghan
+https://forums.deathlist.net/topic/6430-jenni-murray/|Jenni Murray
+https://forums.deathlist.net/topic/10629-3-pete-murray/|Pete Murray
+https://forums.deathlist.net/topic/3948-mohammad-faisal-mushtaq/|Mohammad Faisal Mushtaq
+https://forums.deathlist.net/topic/9580-elon-musk/|Elon Musk
+https://forums.deathlist.net/topic/9761-dave-mustaine/|Dave Mustaine
+https://forums.deathlist.net/topic/10638-martina-navratilova/|Martina Navratilova
+https://forums.deathlist.net/topic/8543-liam-neeson/|Liam Neeson
+https://forums.deathlist.net/topic/10792-sam-neill/|Sam Neill
+https://forums.deathlist.net/topic/10305-connie-neilson/|Connie Neilson
+https://forums.deathlist.net/topic/9282-37-willie-nelson/?page=1|Willie Nelson
+https://forums.deathlist.net/topic/10896-benjamin-netanyahu/|Benjamin Netanyahu
+https://forums.deathlist.net/topic/9338-randy-newman/|Randy Newman
+https://forums.deathlist.net/topic/10883-paul-nicholas/|Paul Nicholas
+https://forums.deathlist.net/topic/2738-jack-nicholson/|Jack Nicholson
+https://forums.deathlist.net/topic/8374-chuck-norris/|Chuck Norris
+https://forums.deathlist.net/topic/11091-nursultan-nazarbayev/|Nursultan Nazarbayev
+https://forums.deathlist.net/topic/10433-hazel-oconnor/|Hazel O'Connor
+https://forums.deathlist.net/topic/3295-martin-oneill/|Martin O'Neill
+https://forums.deathlist.net/topic/11262-bill-oreilly/|Bill O'Reilly
+https://forums.deathlist.net/topic/45-richard-osullivan/|Richard O'Sullivan
+https://forums.deathlist.net/topic/9185-phil-oakey/|Phil Oakey
+https://forums.deathlist.net/topic/11170-dallin-h-oaks/|Dallin H Oaks
+https://forums.deathlist.net/topic/8712-32-yoko-ono/?page=1|Yoko Ono
+https://forums.deathlist.net/topic/10932-alan-oppenheimer/|Alan Oppenheimer
+https://forums.deathlist.net/topic/7115-smugglin-sam/|Samantha Orobator
+https://forums.deathlist.net/topic/48-sharon-osbourne/|Sharon Osbourne
+https://forums.deathlist.net/topic/9897-al-pacino-legendary-actor/|Al Pacino
+https://forums.deathlist.net/topic/11109-farah-pahlavi/|Farah Pahlavi
+https://forums.deathlist.net/topic/7632-sarah-palin/|Sarah Palin
+https://forums.deathlist.net/topic/8545-walter-palmer/|Walter Palmer
+https://forums.deathlist.net/topic/731-mike-parry/|Mike Parry
+https://forums.deathlist.net/topic/11159-dolly-parton/|Dolly Parton
+https://forums.deathlist.net/topic/10780-nikol-pashinyan/|Nikol Pashinyan
+https://forums.deathlist.net/topic/1465-australias-dr-death/|Jayant Patel
+https://forums.deathlist.net/topic/10998-nancy-pelosi/|Nancy Pelosi
+https://forums.deathlist.net/topic/11065-sir-roger-penrose/|Roger Penrose
+https://forums.deathlist.net/topic/4414-isabel-peron/|Isabel Peron
+https://forums.deathlist.net/topic/8949-joe-perry/|Joe Perry
+https://forums.deathlist.net/topic/894-how-about-scott-petersen-for-2024/|Scott Peterson
+https://forums.deathlist.net/topic/1203-scott-peterson/|Duplicate thread
+https://forums.deathlist.net/topic/8121-stiliyan-petrov/|Stiliyan Petrov
+https://forums.deathlist.net/topic/11288-president-pezeshkian/|Masoud Pezeshkian
+https://forums.deathlist.net/topic/10962-joe-pesci/|Joe Pesci
+https://forums.deathlist.net/topic/8917-michael-phelps/|Michael Phelps
+https://forums.deathlist.net/topic/10731-fiona-phillips/|Fiona Phillips
+https://forums.deathlist.net/topic/10679-david-pleat/|David Pleat
+https://forums.deathlist.net/topic/8921-iggy-pop/|Iggy Pop
+https://forums.deathlist.net/topic/1217-gail-porter/|Gail Porter
+https://forums.deathlist.net/topic/7306-roman-polanski/|Roman Polanski
+https://forums.deathlist.net/topic/10462-maury-povich/|Maury Povich
+https://forums.deathlist.net/topic/2270-pj-proby/|PJ Proby
+https://forums.deathlist.net/topic/8357-vladimir-putin/|Vladimir Putin
+https://forums.deathlist.net/topic/11214-peter-purves/|Peter Purves
+https://forums.deathlist.net/topic/10758-alan-price/|Alan Price
+https://forums.deathlist.net/topic/10364-katie-price/|Katie Price
+https://forums.deathlist.net/topic/11049-leontyne-price/|Leontyne Price
+https://forums.deathlist.net/topic/11046-pauline-quirke/|Pauline Quirke
+https://forums.deathlist.net/topic/11129-mahinda-rajapaksa/|Mahinda Rajapaksa
+https://forums.deathlist.net/topic/10660-35-esther-rantzen/|Esther Rantzen
+https://forums.deathlist.net/topic/9798-raoni/|Raoni
+https://forums.deathlist.net/topic/11193-dan-rather/|Dan Rather
+https://forums.deathlist.net/topic/8149-hans-christian-rausing/|Hans Kristian Rausing
+https://forums.deathlist.net/topic/8580-47-vanessa-redgrave/?page=1|Vanessa Redgrave
+https://forums.deathlist.net/topic/1415-harry-redknapp/|Harry Redknapp
+https://forums.deathlist.net/topic/8602-keanu-reeves/|Keanu Reeves
+https://forums.deathlist.net/topic/9604-roman-reigns/|Roman Reigns
+https://forums.deathlist.net/topic/8404-sir-cliff-richard/|Sir Cliff Richard
+https://forums.deathlist.net/topic/6201-keith-richardswill-he-make-it-to-2012/|Keith Richards
+https://forums.deathlist.net/topic/10922-michael-richards/|Michael Richards
+https://forums.deathlist.net/topic/95-chhouk-rin/|Chhouk Rin
+https://forums.deathlist.net/topic/10599-reuven-rivlin/|Reuven Rivlin
+https://forums.deathlist.net/topic/9523-william-roache/|William Roache
+https://forums.deathlist.net/topic/6478-alain-robert-aka-spider-man/|Alain Robert
+https://forums.deathlist.net/topic/8450-jake-the-snake-roberts/|Jake "the Snake" Roberts
+https://forums.deathlist.net/topic/9169-julia-roberts/|Julia Roberts
+https://forums.deathlist.net/topic/6369-oliver-robins/|Oliver Robins
+https://forums.deathlist.net/topic/10624-46-sonny-rollins/|Sonny Rollins
+https://forums.deathlist.net/topic/10193-mitt-romney/|Mitt Romney
+https://forums.deathlist.net/topic/9114-linda-ronstadt/|Linda Ronstadt
+https://forums.deathlist.net/topic/10153-michael-rosen/|Michael Rosen
+https://forums.deathlist.net/topic/8723-diana-ross/|Diana Ross
+https://forums.deathlist.net/topic/10311-david-lee-roth/|David Lee Roth
+https://forums.deathlist.net/topic/11250-mickey-rourke/|Mickey Rourke
+https://forums.deathlist.net/topic/1028-darlie-routier/?page=1|Darlie Routier
+https://forums.deathlist.net/topic/1598-lara-roxx/|Lara Roxx
+https://forums.deathlist.net/topic/11048-axel-rudakubana/|Axel Rudakubana
+https://forums.deathlist.net/topic/5601-salman-rushdie/|Salman Rushdie
+https://forums.deathlist.net/topic/10899-im-going-to-see-jerry-sadowitz/|Jerry Sadowitz
+https://forums.deathlist.net/topic/10000-king-salman-of-saudi-arabia/|Salman of Saudi Arabia
+https://forums.deathlist.net/topic/9538-eva-marie-saint/|Eva Marie Saint
+https://forums.deathlist.net/topic/9810-bernie-sanders/|Bernie Sanders
+https://forums.deathlist.net/topic/11026-carlos-santana/|Carlos Santana
+https://forums.deathlist.net/topic/8289-christopher-sarandon/|Christopher Sarandon
+https://forums.deathlist.net/topic/11128-jos%C3%A9-sarney/|José Sarney
+https://forums.deathlist.net/topic/11239-22-ben-sasse/|Ben Sasse
+https://forums.deathlist.net/topic/10895-arthur-scargill/|Arthur Scargill
+https://forums.deathlist.net/topic/10716-phillip-schofield/|Phillip Schofield
+https://forums.deathlist.net/topic/8380-michael-schumacher/|Michael Schumacher
+https://forums.deathlist.net/topic/10444-klaus-schwab/|Klaus Schwab
+https://forums.deathlist.net/topic/9444-arnold-schwarzenegger/|Arnold Schwarzenegger
+https://forums.deathlist.net/topic/8970-martin-scorsese/|Martin Scorsese
+https://forums.deathlist.net/topic/11199-amartya-sen/|Amartya Sen
+https://forums.deathlist.net/topic/9540-frank-serpico/|Frank Serpico
+https://forums.deathlist.net/topic/2138-tom-selleck-aka-magnum/|Tom Selleck
+https://forums.deathlist.net/topic/8944-william-shatner/|William Shatner
+https://forums.deathlist.net/topic/7825-charlie-sheen/|Charlie Sheen
+https://forums.deathlist.net/topic/9528-ed-sheeran/|Ed Sheeran
+https://forums.deathlist.net/topic/1631-peter-shilton/|Peter Shilton
+https://forums.deathlist.net/topic/1253-debra-shipley-mp/|Debra Shipley
+https://forums.deathlist.net/topic/10581-than-shwe/|Than Shwe
+https://forums.deathlist.net/topic/11068-larry-silverstein/|Larry Silverstein
+https://forums.deathlist.net/topic/5114-sinbad/|Sinbad
+https://forums.deathlist.net/topic/11036-simeon-ii-of-bulgaria-simeon-saxe-coburg-gotha/|Simeon II of Bulgaria
+https://forums.deathlist.net/topic/40-dennis-skinner/|Dennis Skinner
+https://forums.deathlist.net/topic/1050-christian-slayed-ter/|Christian Slater
+https://forums.deathlist.net/topic/10442-tammy-slaton/|Tammy Slaton
+https://forums.deathlist.net/topic/9625-grace-slick/|Grace Slick
+https://forums.deathlist.net/topic/10989-ian-smith-from-neighbours/|Ian Smith
+https://forums.deathlist.net/topic/9419-kevin-smith/|Kevin Smith
+https://forums.deathlist.net/topic/8264-edward-snowden/|Edward Snowden
+https://forums.deathlist.net/topic/9622-george-soros/|George Soros
+https://forums.deathlist.net/topic/9656-kevin-spacey/|Kevin Spacey
+https://forums.deathlist.net/topic/8642-timothy-spall/|Timothy Spall
+https://forums.deathlist.net/topic/2566-max-splodge/|Max Splodge
+https://forums.deathlist.net/topic/9125-bruce-springsteen-and-the-e-street-band/|Bruce Springsteen
+https://forums.deathlist.net/topic/11061-june-squibb/|June Squibb
+https://forums.deathlist.net/topic/9413-sylvester-stallone/|Sylvester Stallone
+https://forums.deathlist.net/topic/10062-keir-starmer/|Keir Starmer
+https://forums.deathlist.net/topic/10383-6-nigel-starmer-smith/|Nigel Starmer-Smith
+https://forums.deathlist.net/topic/9522-ringo-starr/|Ringo Starr
+https://forums.deathlist.net/topic/10052-tommy-steele/|Tommy Steele
+https://forums.deathlist.net/topic/10798-rick-stein/|Rick Stein
+https://forums.deathlist.net/topic/10313-howard-stern/|Howard Stern
+https://forums.deathlist.net/topic/863-shakin-stevens/|Shakin' Stevens
+https://forums.deathlist.net/topic/11215-martha-stewart/|Martha Stewart
+https://forums.deathlist.net/topic/1302-patrick-stewart/|Patrick Stewart
+https://forums.deathlist.net/topic/499-rod-stewart/|Rod Stewart
+https://forums.deathlist.net/topic/9766-sting/|Sting
+https://forums.deathlist.net/topic/1473-oliver-stone/|Oliver Stone
+https://forums.deathlist.net/topic/9727-barbra-streisand/|Barbra Streisand
+https://forums.deathlist.net/topic/10546-rishi-sunak/|Rishi Sunak
+https://forums.deathlist.net/topic/2129-eastenders-actor-in-hospital/|Joe Swash
+https://forums.deathlist.net/topic/87-is-mr-t-dead/|Mr T
+https://forums.deathlist.net/topic/3878-jimmy-tarbuck/|Jimmy Tarbuck
+https://forums.deathlist.net/topic/3871-chris-tarrant/|Chris Tarrant
+https://forums.deathlist.net/topic/10676-andrew-tate/|Andrew Tate
+https://forums.deathlist.net/topic/10627-andy-taylor/|Andy Taylor
+https://forums.deathlist.net/topic/6232-charles-taylor/|Charles Taylor
+https://forums.deathlist.net/topic/1518-roger-taylor/|Roger Taylor
+https://forums.deathlist.net/topic/10587-sandi-toksvig/|Sandi Toksvig
+https://forums.deathlist.net/topic/11067-lily-tomlin/|Lily Tomlin
+https://forums.deathlist.net/topic/7238-john-travolta/|John Travolta
+https://forums.deathlist.net/topic/8614-donald-j-trump/|Donald Trump
+https://forums.deathlist.net/topic/10514-liz-truss/|Liz Truss
+https://forums.deathlist.net/topic/1056-the-kings-of-tonga/|Tupou VI
+https://forums.deathlist.net/topic/10953-kathleen-turner/|Kathleen Turner
+https://forums.deathlist.net/topic/9591-ted-turner/|Ted Turner
+https://forums.deathlist.net/topic/3618-steven-tyler/|Steven Tyler
+https://forums.deathlist.net/topic/570-mike-tyson/|Mike Tyson
+https://forums.deathlist.net/topic/268-lars-ulrich/|Lars Ulrich
+https://forums.deathlist.net/topic/10042-frankie-valli/|Frankie Valli
+https://forums.deathlist.net/topic/7561-joran-van-der-sloot/|Joran van der Sloot
+https://forums.deathlist.net/topic/534-3-dick-van-dyke/?page=1|Dick Van Dyke
+https://forums.deathlist.net/topic/11002-louis-van-gaal/|Louis van Gaal
+https://forums.deathlist.net/topic/9807-paul-verhoeven/|Paul Verhoeven
+https://forums.deathlist.net/topic/11108-bobby-vinton/|Bobby Vinton
+https://forums.deathlist.net/topic/10273-gunther-von-hagens/|Gunther von Hagens
+https://forums.deathlist.net/topic/9355-robert-wagner/|Robert Wagner
+https://forums.deathlist.net/topic/10304-lech-wa%C5%82%C4%99sa/|Lech Wałęsa
+https://forums.deathlist.net/topic/10290-christopher-walken/|Christopher Walken
+https://forums.deathlist.net/topic/3592-joe-walsh/|Joe Walsh
+https://forums.deathlist.net/topic/10841-27-julie-walters/|Julie Walters
+https://forums.deathlist.net/topic/6235-russell-watson/|Russell Watson
+https://forums.deathlist.net/topic/7307-andrew-lloyd-webber/|Andrew Lloyd Webber
+https://forums.deathlist.net/topic/9237-harvey-weinstein/?page=1|Harvey Weinstein
+https://forums.deathlist.net/topic/2042-kanye-west/|Kanye West
+https://forums.deathlist.net/topic/9456-danniella-westbrook/|Danniella Westbrook
+https://forums.deathlist.net/topic/9606-john-williams/|John Williams
+https://forums.deathlist.net/topic/285-montel-williams/|Montel Williams
+https://forums.deathlist.net/topic/737-robbie-williams/|Robbie Williams
+https://forums.deathlist.net/topic/10450-wendy-williams/|Wendy Williams
+https://forums.deathlist.net/topic/10465-bruce-willis/|Bruce Willis
+https://forums.deathlist.net/topic/10515-jo-wilson/|Jo Wilson
+https://forums.deathlist.net/topic/5891-owen-wilson/|Owen Wilson
+https://forums.deathlist.net/topic/8962-richard-wilson/|Richard Wilson
+https://forums.deathlist.net/topic/9803-oprah-winfrey/|Oprah Winfrey
+https://forums.deathlist.net/topic/8752-stevie-wonder/|Stevie Wonder
+https://forums.deathlist.net/topic/143-ronnie-wood/|Ronnie Wood
+https://forums.deathlist.net/topic/10053-roy-wood/|Roy Wood
+https://forums.deathlist.net/topic/2533-bob-woodruff/|Bob Woodruff
+https://forums.deathlist.net/topic/10232-tiger-woods/|Tiger Woods
+https://forums.deathlist.net/topic/1542-sir-clive-woodentop/|Clive Woodward
+https://forums.deathlist.net/topic/9210-35-joanne-woodward/?page=1|Joanne Woodward
+https://forums.deathlist.net/topic/4230-the-so-called-suffolk-strangler/|Suffolk strangler Steve Wright
+https://forums.deathlist.net/topic/9418-xi-jinping/|Xi Jinping
+https://forums.deathlist.net/topic/8257-michael-york/|Michael York
+https://forums.deathlist.net/topic/6326-sean-not-so-young/|Sean Young
+https://forums.deathlist.net/topic/10855-muhammad-yunus/|Muhammad Yunus
+https://forums.deathlist.net/topic/832-viktor-yushchenko/|Viktor Yushchenko
+https://forums.deathlist.net/topic/10451-volodymyr-zelenskyy/|Volodymyr Zelenskyy
+https://forums.deathlist.net/topic/10341-milo%C5%A1-zeman/?page=1|Miloš Zeman
+https://forums.deathlist.net/topic/10198-6ix9ine/|6ix9ine
+https://forums.deathlist.net/topic/9448-get-smart/|Get Smart
+https://forums.deathlist.net/topic/2219-nick-du-toit-simon-mann-mark-thatcher/|Du Toit-Mann-Thatcher
+https://forums.deathlist.net/topic/7411-psycho-survivors/|Psycho survivors
+https://forums.deathlist.net/topic/8732-the-vicar-of-dibley/|The Vicar of Dibley
+https://forums.deathlist.net/topic/716-the-olsen-twins-christina-ricci/|Olsen twins and Christina Ricci
+https://forums.deathlist.net/topic/7387-the-monkees/|The Monkees
+https://forums.deathlist.net/topic/9496-paul-simon-and-art-garfunkel/|Paul Simon and Art Garfunkel
+https://forums.deathlist.net/topic/9738-lisbon-lions/|Lisbon Lions
+https://forums.deathlist.net/topic/6027-thatchers-first-ministry/|Thatchers First Ministry
+https://forums.deathlist.net/topic/7420-munich-air-crash-survivors/|Munich Air Crash survivors
+https://forums.deathlist.net/topic/9922-the-time-tunnel/|The Time Tunnel
+https://forums.deathlist.net/topic/8415-deliverance/|Deliverance
+https://forums.deathlist.net/topic/2443-cuckoo-waltz-feat-lewis-collins/|Cuckoo Waltz
+https://forums.deathlist.net/topic/83-the-great-escape/|The Great Escape
+https://forums.deathlist.net/topic/8167-cast-of-the-high-chaparral/|The High Chaparral
+https://forums.deathlist.net/topic/9959-the-goodies/|The Goodies
+https://forums.deathlist.net/topic/2210-the-poseidon-adventure-cast/|The Poseidon Adventure
+https://forums.deathlist.net/topic/8737-%E1%97%85%E1%97%BA%E1%97%B7%E1%97%85/|ᗅᗺᗷᗅ
+https://forums.deathlist.net/topic/5934-kate-and-gerry/|Kate and Gerry McCann
+https://forums.deathlist.net/topic/8301-monty-python/|Monty Python
+https://forums.deathlist.net/topic/368-the-ramones/|The Ramones
+https://forums.deathlist.net/topic/8554-murder-on-the-orient-express-cast/|Murder on the Orient Express
+https://forums.deathlist.net/topic/4392-terry-waitejohn-mccarthy/|Terry Waite and John McCarthy
+https://forums.deathlist.net/topic/4719-crosby-stills-nash-and-young-how-long-can-they-carry-on/|Crosby, Stills, Nash and Young
+https://forums.deathlist.net/topic/6593-silent-era-people/|Silent Era People
+https://forums.deathlist.net/topic/10243-the-scaffold/|The Scaffold
+https://forums.deathlist.net/topic/1051-is-this-death-penalty-movie-worth-watching/|The Exonerated (2005) cast and people it's based on
+https://forums.deathlist.net/topic/2334-eleni/|Eleni actors etc
+https://forums.deathlist.net/topic/999-pink-floyd/|Pink Floyd
+https://forums.deathlist.net/topic/9129-the-lone-ranger/|The Lone Ranger
+https://forums.deathlist.net/topic/9541-thai-die/|Thai cave rescue of 2018
+https://forums.deathlist.net/topic/8553-blues-brothers-2000/|Blues brothers 2000
+https://forums.deathlist.net/topic/8373-the-smiths-cover-stars/|The Smiths cover stars
+https://forums.deathlist.net/topic/8746-winnetou/|Winnetou
+https://forums.deathlist.net/topic/8352-spanish-civil-war-veterans/|Spanish Civil War veterans
+https://forums.deathlist.net/topic/8155-irwin-allens-hacks/|Irwin Allens Hacks
+https://forums.deathlist.net/topic/8243-toho-stars/|Toho stars
+https://forums.deathlist.net/topic/9884-heartbeat/|Heartbeat
+https://forums.deathlist.net/topic/8355-only-fools-and-horses/|Only Fools and Horses
+https://forums.deathlist.net/topic/1090-the-osmonds/|The Osmonds
+https://forums.deathlist.net/topic/9058-operation-yewtreeincluding-alleged-death-predictor/|Operation Yewtree
+https://forums.deathlist.net/topic/8169-colditz/|Colditz
+https://forums.deathlist.net/topic/1658-harry-potter/|Harry Potter
+https://forums.deathlist.net/topic/1558-last-of-the-summer-wine/|Last of the Summer Wine
+https://forums.deathlist.net/topic/9990-this-is-your-life/|This is your life
+https://forums.deathlist.net/topic/8699-korean-war-vets/|Korean war veterans
+https://forums.deathlist.net/topic/187-very-blue-peter/|Blue Peter
+https://forums.deathlist.net/topic/9991-glee-stars/|Glee stars
+https://forums.deathlist.net/topic/9724-game-of-thrones/|Game of Thrones
+https://forums.deathlist.net/topic/3377-z-cars/|Z-Cars
+https://forums.deathlist.net/topic/10068-hello/|Hello
+https://forums.deathlist.net/topic/9989-back-to-the-future/|Back to the Future
+https://forums.deathlist.net/topic/6598-fleetwood-mac/|Fleetwood Mac
+https://forums.deathlist.net/topic/8154-seven-brides-for-seven-corpses/|Seven Brides for Seven Brothers
+https://forums.deathlist.net/topic/8171-pink-panther-cast-crew/|Pink Panther
+https://forums.deathlist.net/topic/2384-mollie-sugden-et-al/|Are You Being Served?
+https://forums.deathlist.net/topic/8591-grange-hill/|Grange Hill
+https://forums.deathlist.net/topic/8588-the-priests-of-father-ted/|Father Ted
+https://forums.deathlist.net/topic/7652-world-war-ii-veterans/|WWII Veterans
+https://forums.deathlist.net/topic/9055-tuskegee-airmen/|Tuskegee Airmen
+https://forums.deathlist.net/topic/9505-alan-arkin/|Alan Arkin
+https://forums.deathlist.net/topic/8332-ed-asner/|Ed Asner
+https://forums.deathlist.net/topic/9173-42-burt-bacharach/?page=1|Burt Bacharach
+https://forums.deathlist.net/topic/9039-11-bob-barker/?page=1|Bob Barker
+https://forums.deathlist.net/topic/8724-26-harry-belafonte/?page=1|Harry Belafonte
+https://forums.deathlist.net/topic/1323-30-pope-benedict-xvi/?page=1|Benedict XVI
+https://forums.deathlist.net/topic/8997-barry-bennell/|Barry Bennell
+https://forums.deathlist.net/topic/8223-22-tony-bennett/?page=1|Tony Bennett
+https://forums.deathlist.net/topic/8932-silvio-berlusconi/|Silvio Berlusconi
+https://forums.deathlist.net/topic/10118-lionel-blair/|Lionel Blair
+https://forums.deathlist.net/topic/9575-38-betty-boothroyd/?page=1|Betty Boothroyd
+https://forums.deathlist.net/topic/2562-14-june-brown/?page=1|June Brown
+https://forums.deathlist.net/topic/849-lord-camoys/|Lord Camoys
+https://forums.deathlist.net/topic/9797-aaron-carter/|Aaron Carter
+https://forums.deathlist.net/topic/9476-23-rosalynn-carter/?page=1|Rosalynn Carter
+https://forums.deathlist.net/topic/10067-bobby-charlton/|Bobby Charlton
+https://forums.deathlist.net/topic/10054-beverly-cleary/|Beverly Cleary
+https://forums.deathlist.net/topic/9864-19-david-crosby/?page=1|David Crosby
+https://forums.deathlist.net/topic/23-robbie-coltrane/|Robbie Coltrane
+https://forums.deathlist.net/topic/2770-46-bernard-cribbins/?page=1|Bernard Cribbins
+https://forums.deathlist.net/topic/3085-fw-de-klerk/|F.W. de Klerk
+https://forums.deathlist.net/topic/9909-judith-durham/|Judith Durham
+https://forums.deathlist.net/topic/10386-36-robert-durst/|Robert Durst
+https://forums.deathlist.net/topic/9117-clarissa-eden/|Clarissa Eden
+https://forums.deathlist.net/topic/2906-25-queen-elizabeth-ii/?page=1|Queen Elizabeth II
+https://forums.deathlist.net/topic/825-andy-fordham-will-he-retain-his-liver/|Andy Fordham
+https://forums.deathlist.net/topic/10070-robert-fyfe/|Robert Fyfe
+https://forums.deathlist.net/topic/10388-42-michael-gambon/|Michael Gambon
+https://forums.deathlist.net/topic/10391-48-jean-luc-godard/|Jean-Luc Godard
+https://forums.deathlist.net/topic/10023-len-goodman/|Len Goodman
+https://forums.deathlist.net/topic/2692-mikhail-gorbachev/|Mikhail Gorbachev
+https://forums.deathlist.net/topic/9964-mike-gravel/|Mike Gravel
+https://forums.deathlist.net/topic/10171-david-gulpilil/|David Gulpilil
+https://forums.deathlist.net/topic/10024-sarah-harding/|Sarah Harding
+https://forums.deathlist.net/topic/10385-25-estelle-harris/|Estelle Harris
+https://forums.deathlist.net/topic/749-rolf-harris-stairway-to-heaven/|Rolf Harris
+https://forums.deathlist.net/topic/9495-william-hurt/|William Hurt
+https://forums.deathlist.net/topic/9863-17-jacques-delors/?page=1|Jacques Delors
+https://forums.deathlist.net/topic/9843-glenda-jackson/|Glenda Jackson
+https://forums.deathlist.net/topic/8256-dambusters/|George "Johnny" Johnson
+https://forums.deathlist.net/topic/8220-wilko-johnson/|Wilko Johnson
+https://forums.deathlist.net/topic/10384-23-ted-kaczynski/|Ted Kaczynski
+https://forums.deathlist.net/topic/9905-kenneth-kaunda/|Kenneth Kaunda
+https://forums.deathlist.net/topic/4049-abdul-qadeer-khan/|Abdul Qadeer Khan
+https://forums.deathlist.net/topic/1262-13-henry-kissinger/?page=1|Henry Kissinger
+https://forums.deathlist.net/topic/10072-yaphet-kotto/|Yaphet Kotto
+https://forums.deathlist.net/topic/9284-hardy-kr%C3%BCger/|Hardy Krüger
+https://forums.deathlist.net/topic/8345-gone-with-the-wind/|Mickey Kuhn
+https://forums.deathlist.net/topic/10170-dilip-kumar/|Dilip Kumar
+https://forums.deathlist.net/topic/10390-46-milan-kundera/|Milan Kundera
+https://forums.deathlist.net/topic/1313-10-angela-lansbury/?page=1|Angela Lansbury
+https://forums.deathlist.net/topic/8065-nigel-lawson/|Nigel Lawson
+https://forums.deathlist.net/topic/9644-norman-lear/|Norman Lear
+https://forums.deathlist.net/topic/7876-jerry-lee-lewis/|Jerry Lee Lewis
+https://forums.deathlist.net/topic/9234-norman-lloyd/|Norman Lloyd
+https://forums.deathlist.net/topic/9279-peter-lorimer/|Peter Lorimer
+https://forums.deathlist.net/topic/9165-gina-lollobrigida/|Gina Lollobrigida
+https://forums.deathlist.net/topic/10013-james-lovelock/|James Lovelock
+https://forums.deathlist.net/topic/9121-6-loretta-lynn/?page=1|Loretta Lynn
+https://forums.deathlist.net/topic/9831-norm-macdonald/|Norm Macdonald
+https://forums.deathlist.net/topic/5-48-shane-macgowan/?page=1|Shane MacGowan
+https://forums.deathlist.net/topic/9566-john-madden/|John Madden
+https://forums.deathlist.net/topic/7062-bernie-madoff/|Bernie Madoff
+https://forums.deathlist.net/topic/10096-andr%C3%A9-maranne/|André Maranne
+https://forums.deathlist.net/topic/9767-sinisa-mihajlovic/|Sinisa Mihajlovic
+https://forums.deathlist.net/topic/468-general-pervez-musharraf/|Pervez Musharraf
+https://forums.deathlist.net/topic/9347-gerd-m%C3%BCller/|Gerd Müller
+https://forums.deathlist.net/topic/9150-olivia-newton-john/|Olivia Newton-John
+https://forums.deathlist.net/topic/10226-nichelle-nichols/|Nichelle Nichols
+https://forums.deathlist.net/topic/1605-sandra-day-oconnor/|Sandra Day O'Connor
+https://forums.deathlist.net/topic/5737-paul-ogrady/|Paul O'Grady
+https://forums.deathlist.net/topic/8126-ryan-oneal/|Ryan O'Neal
+https://forums.deathlist.net/topic/10055-tom-parker/|Tom Parker
+https://forums.deathlist.net/topic/9451-michael-parkinson/|Michael Parkinson
+https://forums.deathlist.net/topic/8429-edson-arantes-do-nascimento-pele/|Pele
+https://forums.deathlist.net/topic/9715-cardinal-george-pell/|Cardinal George Pell
+https://forums.deathlist.net/topic/4829-16-leslie-phillips/?page=1|Leslie Phillips
+https://forums.deathlist.net/topic/8107-1-prince-philip-duke-of-edinburgh/?page=1|Prince Philip
+https://forums.deathlist.net/topic/5377-lester-piggott/|Lester Piggott
+https://forums.deathlist.net/topic/8706-40-sidney-poitier/?page=1|Sidney Poitier
+https://forums.deathlist.net/topic/9492-harry-reid/|Harry Reid
+https://forums.deathlist.net/topic/9194-pat-robertson/|Pat Robertson
+https://forums.deathlist.net/topic/1744-donald-rumsfeld/|Donald Rumsfeld
+https://forums.deathlist.net/topic/276-reg-varney-on-the-buses-jack-smethurst-love-thy/|Jack Smethurst
+https://forums.deathlist.net/topic/10240-walter-smith/|Walter Smith
+https://forums.deathlist.net/topic/7507-paul-sorvino-overweight-asthmatic/|Paul Sorvino
+https://forums.deathlist.net/topic/10554-robert-solow/|Robert Solow
+https://forums.deathlist.net/topic/9721-r-dean-taylor/|R. Dean Taylor
+https://forums.deathlist.net/topic/10387-38-bill-treacher/|Bill Treacher
+https://forums.deathlist.net/topic/9683-jean-louis-trintignant/|Jean-Louis Trintignant
+https://forums.deathlist.net/topic/9545-bill-turnbull/|Bill Turnbull
+https://forums.deathlist.net/topic/8753-tina-turner/|Tina Turner
+https://forums.deathlist.net/topic/1326-desmond-tutu/|Desmond Tutu
+https://forums.deathlist.net/topic/9858-gianluca-vialli/|Gianluca Vialli
+https://forums.deathlist.net/topic/10173-monica-vitti/|Monica Vitti
+https://forums.deathlist.net/topic/8385-29-barbara-walters/?page=1|Barbara Walters
+https://forums.deathlist.net/topic/2271-dennis-waterman/|Dennis Waterman
+https://forums.deathlist.net/topic/594-watts-up-doc/|Charlie Watts
+https://forums.deathlist.net/topic/9452-raquel-welch/|Raquel Welch
+https://forums.deathlist.net/topic/6399-kurt-westergaard/|Kurt Westergaard
+https://forums.deathlist.net/topic/8475-2-betty-white/?page=1|Betty White
+https://forums.deathlist.net/topic/9565-k%C3%A5re-willoch/|Kåre Willoch
+https://forums.deathlist.net/topic/10004-jiang-zemin/|Jiang Zemin
+https://forums.deathlist.net/topic/10847-20-derek-draper/|Derek Draper
+https://forums.deathlist.net/topic/10012-glynis-johns/|Glynis Johns
+https://forums.deathlist.net/topic/10644-franz-beckenbauer/|Franz Beckenbauer
+https://forums.deathlist.net/topic/10366-annie-nightingale/|Annie Nightingale
+https://forums.deathlist.net/topic/10576-jonnie-irwin/|Jonnie Irwin
+https://forums.deathlist.net/topic/10602-nikolai-ryzhkov/|Nikolai Ryzhkov
+https://forums.deathlist.net/topic/10888-steve-harley/|Steve Harley
+https://forums.deathlist.net/topic/6623-oj-simpson-run-out-of-juice/|O.J. Simpson
+https://forums.deathlist.net/topic/10330-frank-field/|Frank Field
+https://forums.deathlist.net/topic/8338-gudrun-ure/|Gudrun Ure
+https://forums.deathlist.net/topic/10681-richard-m-sherman/|Richard M. Sherman
+https://forums.deathlist.net/topic/10507-william-russell/|William Russell
+https://forums.deathlist.net/topic/10586-fran%C3%A7oise-hardy/|Françoise Hardy
+https://forums.deathlist.net/topic/10297-donald-sutherland/|Donald Sutherland
+https://forums.deathlist.net/topic/10831-ruth-westheimer/|Ruth Westheimer
+https://forums.deathlist.net/topic/8964-49-shannen-doherty/?page=1|Shannen Doherty
+https://forums.deathlist.net/topic/10662-anastasia-zavorotnyuk/|Anastasia Zavorotnyuk
+https://forums.deathlist.net/topic/8574-27-bob-newhart/?page=1|Bob Newhart
+https://forums.deathlist.net/topic/10935-gena-rowlands/|Gena Rowlands
+https://forums.deathlist.net/topic/2493-sven-g%C3%B6ran-eriksson/?page=1|Sven-Göran Eriksson
+https://forums.deathlist.net/topic/1548-james-earl-jones/|James Earl Jones
+https://forums.deathlist.net/topic/9285-alberto-fujimori/|Alberto Fujimori
+https://forums.deathlist.net/topic/10774-david-graham/|David Graham
+https://forums.deathlist.net/topic/6393-maggie-smith/|Maggie Smith
+https://forums.deathlist.net/topic/3251-sheikh-hasan-nasrallah/|Hassan Nasrallah
+https://forums.deathlist.net/topic/9704-kris-kristofferson/|Kris Kristofferson
+https://forums.deathlist.net/topic/4293-tim-johnson/|Tim Johnson
+https://forums.deathlist.net/topic/10960-philip-zimbardo/|Philip Zimbardo
+https://forums.deathlist.net/topic/10832-yahya-sinwar/|Yahya Sinwar
+https://forums.deathlist.net/topic/3907-phil-lesh/|Phil Lesh
+https://forums.deathlist.net/topic/10918-teri-garr/|Teri Garr
+https://forums.deathlist.net/topic/10646-janey-godley/|Janey Godley
+https://forums.deathlist.net/topic/9050-quincy-jones/|Quincy Jones
+https://forums.deathlist.net/topic/10174-june-spencer/|June Spencer
+https://forums.deathlist.net/topic/3060-the-probable-demise-of-j-prescott-and-new-labour/|John Prescott
+https://forums.deathlist.net/topic/3461-bob-bryar/|Bob Bryar
+https://forums.deathlist.net/topic/7886-eddie-stobart/|Eddie Stobart
+https://forums.deathlist.net/topic/9228-desi-bouterse/|Desi Bouterse
+https://forums.deathlist.net/topic/9652-olivia-hussey/|Olivia Hussey
+https://forums.deathlist.net/topic/10994-peter-yarrow/|Peter Yarrow
+https://forums.deathlist.net/topic/72-johnnie-walker-hows-he-doing/|Johnnie Walker
+https://forums.deathlist.net/topic/1430-15-jimmy-carter/?page=1|Jimmy Carter
+https://forums.deathlist.net/topic/9737-tony-slattery/|Tony Slattery
+https://forums.deathlist.net/topic/10249-bob-uecker/|Bob Uecker
+https://forums.deathlist.net/topic/10022-alexey-navalny-pronounced-uh-lex-yay-nuh-wahl-neey/|Alexey Navalny
+https://forums.deathlist.net/topic/10497-ruth-buzzi/|Ruth Buzzi
+https://forums.deathlist.net/topic/10119-leo-beenhakker/|Leo Beenhakker
+https://forums.deathlist.net/topic/9648-richard-chamberlain/|Richard Chamberlain
+https://forums.deathlist.net/topic/11032-violeta-chamorro/|Violeta Chamorro
+https://forums.deathlist.net/topic/859-marianne-faithfull/|Marianne Faithfull
+https://forums.deathlist.net/topic/10568-roberta-flack/|Roberta Flack
+https://forums.deathlist.net/topic/8242-pope-francis/|Pope Francis
+https://forums.deathlist.net/topic/8634-sandy-gall/|Sandy Gall
+https://forums.deathlist.net/topic/8290-gene-hackman/|Gene Hackman
+https://forums.deathlist.net/topic/10529-toby-keith/|Toby Keith
+https://forums.deathlist.net/topic/9122-ethel-kennedy/|Ethel Kennedy
+https://forums.deathlist.net/topic/8509-val-kilmer/|Val Kilmer
+https://forums.deathlist.net/topic/10437-richard-lewis/|Richard Lewis
+https://forums.deathlist.net/topic/10392-31-denis-law/|Denis Law
+https://forums.deathlist.net/topic/9104-39-jean-marie-le-pen/?page=1|Jean-Marie Le Pen
+https://forums.deathlist.net/topic/10298-jean-marsh/|Jean Marsh
+https://forums.deathlist.net/topic/9779-farmer-tony-martin/|farmer Tony Martin
+https://forums.deathlist.net/topic/10890-steve-mcmichael/|Steve McMichael
+https://forums.deathlist.net/topic/10910-jos%C3%A9-mujica/|José Mujica
+https://forums.deathlist.net/topic/10533-brian-murphy/|Brian Murphy
+https://forums.deathlist.net/topic/9133-34-linda-nolan/?page=1|Linda Nolan
+https://forums.deathlist.net/topic/10942-sam-nujoma/|Sam Nujoma
+https://forums.deathlist.net/topic/1549-wincy-willis/|Wincey Willis
+https://forums.deathlist.net/topic/8934-brian-wilson/|Brian Wilson
+https://forums.deathlist.net/topic/9630-kim-woodburn/|Kim Woodburn
+https://forums.deathlist.net/topic/1846-tebbit-next/|Norman Tebbit
+https://forums.deathlist.net/topic/8998-glen-michael/|Glen Michael
+https://forums.deathlist.net/topic/1855-sir-ian-blair/|Sir Ian Blair
+https://forums.deathlist.net/topic/9163-muhammadu-buhari/|Muhammadu Buhari
+https://forums.deathlist.net/topic/10686-fauja-singh/|Fauja Singh
+https://forums.deathlist.net/topic/5785-ozzy-osbourne/|Ozzy Osbourne
+https://forums.deathlist.net/topic/1546-1987-veterans-still-alive/|thread #2
+https://forums.deathlist.net/topic/2489-hulk-hogan-drops-last-legdrop/|Hulk Hogan
+https://forums.deathlist.net/topic/9667-cleo-laine/|Cleo Laine
+https://forums.deathlist.net/topic/9941-tom-lehrer/|Tom Lehrer
+https://forums.deathlist.net/topic/9223-alain-delon/|Alain Delon
+https://forums.deathlist.net/topic/8405-june-flewett-a-ka-jill-raymond-a-k-a-lady-jill-freud/|June Flewett
+https://forums.deathlist.net/topic/8195-ian-watkins/|Ian Watkins
+https://forums.deathlist.net/topic/10203-james-d-watson/|James Watson
+https://forums.deathlist.net/topic/11087-claudia-cardinale/|Claudia Cardinale
+https://forums.deathlist.net/topic/11095-jim-bolger/|Jim Bolger
+https://forums.deathlist.net/topic/809-24-dick-cheney/?page=1|Dick Cheney
+https://forums.deathlist.net/topic/10103-ion-iliescu/|Ion Iliescu
+https://forums.deathlist.net/topic/8361-jane-goodall/|Jane Goodall
+https://forums.deathlist.net/topic/10485-47-sly-stone/|Sly Stone
+https://forums.deathlist.net/topic/11003-tomiichi-murayama/|Tomiichi Murayama
+https://forums.deathlist.net/topic/10597-russell-m-nelson/|Russell M Nelson
+https://forums.deathlist.net/topic/1600-duchess-of-kent/|Katharine, Duchess of Kent
+https://forums.deathlist.net/topic/11105-june-lockhart/|June Lockhart
+https://forums.deathlist.net/topic/1255-joan-kennedy/|Joan Kennedy
+https://forums.deathlist.net/topic/8632-20-prunella-scales/?page=1|Prunella Scales
+https://forums.deathlist.net/topic/10275-18-patricia-routledge/|Patricia Routledge
+https://forums.deathlist.net/topic/10021-james-whale/|James Whale
+https://forums.deathlist.net/topic/9252-45-stanley-baxter/?page=1|Stanley Baxter
+https://forums.deathlist.net/topic/2160-chris-rea-die-arrhea/|Chris Rea
+https://forums.deathlist.net/topic/10334-brigitte-bardot/|Brigitte Bardot
+https://forums.deathlist.net/topic/10791-khaleda-zia/|Khaleda Zia
+https://forums.deathlist.net/topic/11081-erich-von-d%C3%A4niken/|Erich von Däniken
+https://forums.deathlist.net/topic/9113-scott-adams/|Scott Adams
+https://forums.deathlist.net/topic/9126-robert-redford/|Robert Redford
+https://forums.deathlist.net/topic/8084-saif-al-islam-gaddafi/|Saif al-Islam Gaddafi
+https://forums.deathlist.net/topic/10979-james-van-der-beek/|James Van Der Beek
+https://forums.deathlist.net/topic/10622-32-robert-duvall/|Robert Duvall
+https://forums.deathlist.net/topic/10267-jesse-jackson/|Jesse Jackson
+https://forums.deathlist.net/topic/11171-eric-dane/|Eric Dane
+https://forums.deathlist.net/topic/10332-neil-sedaka/|Neil Sedaka
+https://forums.deathlist.net/topic/4349-18-ayatollah-ali-khamenei/?page=1|Ali Khamenei
+https://forums.deathlist.net/topic/10977-song-ping/|Song Ping
+https://forums.deathlist.net/topic/2583-ian-huntley/|Ian Huntley
+https://forums.deathlist.net/topic/8975-uss-arizona/|USS Arizona
+`;
+
+  let urlList = []; // Array of {url, name}
+  let filteredList = [];
+  let selectedIndex = -1;
+
+  // Parse the embedded data
+  urlList = urlData.trim().split('\n').map(line => {
+    const [url, name] = line.split('|').map(s => s.trim());
+    return { url: url, name: name || url };
+  });
+
+  // Click anywhere on body to focus the search input
+  document.body.addEventListener('click', (e) => {
+    // Don't focus if clicking on dropdown items
+    if (!e.target.closest('.dropdown-item')) {
+      searchInput.focus();
+    }
+  });
+
+  function filterList() {
+    const query = searchInput.value.toLowerCase();
+    filteredList = urlList.filter(item =>
+      item.name.toLowerCase().includes(query) || item.url.toLowerCase().includes(query)
+    );
+    
+    // Set selectedIndex to 0 (first result) by default when there are results
+    selectedIndex = filteredList.length > 0 ? 0 : -1;
+    
+    renderDropdown();
+  }
+
+  function renderDropdown() {
+    dropdown.innerHTML = '';
+    if (filteredList.length === 0 || searchInput.value.trim() === '') {
+      dropdown.style.display = 'none';
+      return;
+    }
+    filteredList.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item';
+      div.textContent = item.name;
+      div.addEventListener('mousedown', () => {
+        selectItem(index);
+      });
+      if (index === selectedIndex) {
+        div.classList.add('active');
+      }
+      dropdown.appendChild(div);
+    });
+    dropdown.style.display = 'block';
+  }
+
+  function selectItem(index) {
+    if (index >= 0 && index < filteredList.length) {
+      searchInput.value = filteredList[index].name;
+      openURL(filteredList[index].url);
+    }
+  }
+
+  function openURL(url) {
+    window.open(url, '_blank');
+    dropdown.style.display = 'none';
+  }
+
+  // Event listeners
+  searchInput.addEventListener('input', filterList);
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (dropdown.style.display === 'none') return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (selectedIndex < filteredList.length - 1) {
+        selectedIndex++;
+        renderDropdown();
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (selectedIndex > 0) {
+        selectedIndex--;
+        renderDropdown();
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && selectedIndex < filteredList.length) {
+        selectItem(selectedIndex);
+      } else if (filteredList.length === 1) {
+        selectItem(0);
+      } else if (filteredList.length > 0) {
+        selectItem(0);
+      }
+    }
+  });
+
+  // Click outside to close dropdown
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+      dropdown.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
